@@ -1,0 +1,4 @@
+Hola, para la creacion de este proyecto se utilizo una base mysql, se adjunta un script de generacion de los datos.
+En cuanto al ABM de Carrera se asumio: 
+-Que los elementos de la base no se borran, sino que tienen estados activos o baja. 
+-Y que no se pueden eleminar elementos que contengan otros en estado activo.

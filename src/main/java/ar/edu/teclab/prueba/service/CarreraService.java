@@ -11,6 +11,8 @@ import ar.edu.teclab.prueba.exceptions.ResourceNotFoundException;
 import ar.edu.teclab.prueba.repository.CarreraRepository;
 import ar.edu.teclab.prueba.repository.CursadaRepository;
 import ar.edu.teclab.prueba.repository.MateriaRepository;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -19,6 +21,8 @@ import java.util.List;
 
 @Service
 public class CarreraService {
+
+    private static final Log LOG = LogFactory.getLog(PruebaService.class);
 
     @Resource
     CarreraRepository carreraRepository;
@@ -32,17 +36,22 @@ public class CarreraService {
     @Resource
     MateriaRepository materiaRepository;
 
-
+    //crea una carrera
     public CarreraDto createCarrera(CarreraDto carreraDto) throws Exception {
         if(carreraDto==null){
             throw  new ConflictException("Por favor ingrese datos para guardar la carrera");
         }
-        Carrera carrera = carreraConverter.toEntity(carreraDto);
-        Carrera save = carreraRepository.save(carrera);
-        carreraDto.setId(save.getId());
+        try {
+            Carrera carrera = carreraConverter.toEntity(carreraDto);
+            Carrera save = carreraRepository.save(carrera);
+            carreraDto.setId(save.getId());
+        } catch (Exception e) {
+            LOG.error("Error", e);
+        }
         return carreraDto;
     }
 
+    //obetener carrera por id
     public CarreraDto getCarreraById(Integer carreraId){
      Carrera carrera = carreraRepository.findOne(carreraId);
     if(carrera== null){
@@ -52,16 +61,19 @@ public class CarreraService {
 
     }
 
+    //obtener todas las carreras
     public List<CarreraDto> getAllCarreraDto(){
         List<CarreraDto> carreraDtos = carreraConverter.toDtoList(carreraRepository.findAll());
         return carreraDtos;
     }
 
+    //obtener todas las carreras activas
     public List<CarreraDto> getAllActiveCarreraDto(){
         List<CarreraDto> carreraDtos = carreraConverter.toDtoList(carreraRepository.findAllActiveCarreras());
         return carreraDtos;
     }
 
+    //Borrar carreras mientras no tengas cursada con alumnos
     public HashMap<String, String> deleteCarrera(Integer carreraId){
         // no se debe poder borrar una carrera que tenga materias y cursadas
         HashMap<String, String> result= new HashMap<>();
@@ -82,6 +94,7 @@ public class CarreraService {
         return  result;
     }
 
+    //actualizar carrera
     public CarreraDto updateCarrera(CarreraDto carreraDto) throws Exception {
         if(carreraDto==null){
             throw  new ConflictException("Por favor ingrese datos para guardar la carrera");
@@ -96,7 +109,7 @@ public class CarreraService {
         return carreraDto;
     }
 
-
+    //agregar materia a carrera
     public HashMap<String, String> addMateria(Integer carreraId, Integer materiaId){
         HashMap<String, String> result= new HashMap<>();
         Carrera carrera = carreraRepository.findOne(carreraId);
@@ -113,6 +126,7 @@ public class CarreraService {
         return  result;
     }
 
+    //borrar materia de carrera mientras no tenga cursada activa
     public HashMap<String, String> deleteMateriaFromCarrera(Integer carreraId, Integer materiaId){
         HashMap<String, String> result= new HashMap<>();
         Carrera carrera = carreraRepository.findOne(carreraId);
@@ -123,7 +137,7 @@ public class CarreraService {
         if(materia!=null){
             materia.setCarrera(null);
         }else{
-            throw  new ConflictException("Los datos de la materia no son validos");
+            throw  new ConflictException("Solo se pueden eliminar materias con cursadas inactivas");
         }
         result.put("Resultado", "Ok");
         return  result;

@@ -37,30 +37,45 @@ public class PruebaController {
 		return null;
 	}
 
+	//listar tickets
 	@GetMapping("/comments/ticket/{ticketId}")
 	public ResponseEntity<List<Object>> getCommentsByTicketId(@PathVariable Integer ticketId) {
 
 		if(ticketId!=null){
+		try {
 			List<Object> commentByTicket = ticketService.getCommentByTicket(ticketId);
 			return ResponseEntity.ok(commentByTicket);
+		} catch (Exception e) {
+			LOG.error(e);
+		}
 		}else{
 			throw new ConflictException("Debe ingresar un ticket valido");
 		}
+		return null;
 	}
 
+	//insertar comentario en ticket
 	@PutMapping("/insert/comment/ticket/{ticketId}")
 	public ResponseEntity<HashMap<String, String>> insertComment(@PathVariable Integer ticketId,
 																 @RequestBody JsonNode ticketComment) {
-		HashMap<String, String> response= new HashMap<>();
-		if(ticketId!=null){
 
 
-			ticketService.insertComment(ticketId, ticketComment);
-			response.put("Result", "OK");
-			return ResponseEntity.ok(response);
-		}else{
-			throw new ConflictException("Debe ingresar un ticket valido");
-		}
+			HashMap<String, String> response= new HashMap<>();
+			if(ticketId!=null){
+
+				try {
+					ticketService.insertComment(ticketId, ticketComment);
+					response.put("Result", "OK");
+					return ResponseEntity.ok(response);
+				} catch (Exception e) {
+					LOG.error(e);
+				}
+
+			}else{
+				throw new ConflictException("Debe ingresar un ticket valido");
+			}
+
+		return null;
 	}
 	
 }
