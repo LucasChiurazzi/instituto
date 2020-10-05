@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,7 @@ public class PruebaController {
 		return null;
 	}
 
-	//listar tickets
+	//listar commentarios de un ticket
 	@GetMapping("/comments/ticket/{ticketId}")
 	public ResponseEntity<List<Object>> getCommentsByTicketId(@PathVariable Integer ticketId) {
 
@@ -64,8 +65,9 @@ public class PruebaController {
 			if(ticketId!=null){
 
 				try {
-					ticketService.insertComment(ticketId, ticketComment);
-					response.put("Result", "OK");
+					HttpStatus status = ticketService.insertComment(ticketId, ticketComment);
+
+					response.put("Result",status.name() );
 					return ResponseEntity.ok(response);
 				} catch (Exception e) {
 					LOG.error(e);
@@ -77,7 +79,8 @@ public class PruebaController {
 
 		return null;
 	}
-	
+
+
 }
 
 

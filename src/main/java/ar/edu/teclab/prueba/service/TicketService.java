@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -42,6 +43,7 @@ public class TicketService {
             }
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(responseEntity.getBody());
+            //control si existe el indice comments
             JsonNode comments = root.get("comments");
             response = Collections.singletonList(comments);
         }catch (Exception e){
@@ -50,7 +52,7 @@ public class TicketService {
         return response;
     }
 
-    public String insertComment(Integer ticketId, JsonNode ticketComment){
+    public HttpStatus insertComment(Integer ticketId, JsonNode ticketComment) throws IOException {
 
         RestTemplate restTemplate = new RestTemplate();
         String uri= ConstantConfig.TICKET_BASE_URL+"/api/v2/tickets/"+ticketId+".json";
@@ -59,33 +61,11 @@ public class TicketService {
         headers.set("Authorization", "Basic "+ getBase64Authorization());
         HttpEntity<JsonNode> requestUpdate = new HttpEntity<>(ticketComment, headers);
         ResponseEntity<Void> exchange = restTemplate.exchange(uri, HttpMethod.PUT, requestUpdate, Void.class);
-        return null;
+        HttpStatus statusCode = exchange.getStatusCode();
+        return statusCode;
 
     }
 
-    public String insertCommentCallback(Integer ticketId, JsonNode ticketComment){
-        RestTemplate restTemplate = new RestTemplate();
-        String uri= ConstantConfig.TICKET_BASE_URL+"/api/v2/tickets/"+ticketId+".json";
-        Object execute = restTemplate.execute(
-                uri,
-                HttpMethod.PUT,
-                requestCallback(ticketComment),
-                clientHttpResponse -> null);
-
-        return null;
-    }
-
-    private RequestCallback requestCallback(JsonNode ticketComment) {
-
-        return clientHttpRequest -> {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(clientHttpRequest.getBody(), ticketComment);
-            clientHttpRequest.getHeaders().add(
-                    HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-            clientHttpRequest.getHeaders().add(
-                    HttpHeaders.AUTHORIZATION, "Basic " + getBase64Authorization());
-        };
-    }
     private String getBase64Authorization(){
         String user= ConstantConfig.TICKET_USER;
         String pass= ConstantConfig.TICKET_PASS;
